@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Maidong">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=no">
+    <title>Takeaway Ordering System</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/order.css">
+    <style>
+      @media (max-width:767px) {.md-hidden-xs {display:none!important}}
+    </style>
+  </head>
+  <body>
+<% include ../template/header.html %>
+
+    <main>
+      <section class="jumbotron text-center mb-0">
+        <div class="container">
+          <h1 class="jumbotron-heading">Order Details</h1></div>
+      </section>
+      <div class="py-5 bg-light">
+        <div class="container" id="main_container">
+          <div class="row">
+            <div class="col-md-3">order number: <span id="order_id" style="color: blue;">11111</span></div>
+            <div class="col-md-3">our customers: <span id="username" style="color: blue;">&nbsp;not yet landed</span></div>
+            <div class="col-md-3"><button class="btn" type="button" id="submitbtn" style="color: blue;">Submit Order</button></div>
+            <div class="col-md-3"><button class="btn" type="button" id="cancelbtn" style="color: blue;">Cancellation of orders</button></div>
+
+          </div>
+
+          <div class="row">
+            <div class="col-md-10">
+              <nav class="navbar navbar-expand navbar-light bg-light">
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                  <div class="navbar-nav"></div>
+                  <div class="btn-group" role="group" id="pathNav" aria-label="path"></div>
+                </div>
+              </nav>
+            </div>
+          </div>
+          <ul class="nav" id="mdlistNav"></ul>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <td>Dish name</td>
+                <td>Price</td>
+                <td class="md-hidden-xs">number</td>
+                <td>removes</td>
+              </tr>
+            </thead>
+            <tbody id="dishes">
+<!--
+				<tr> -->
+            </tbody>
+          </table>
+          <div class="row">
+            <!-- <input type="textarea" id="area" width="100%"> -->
+            <textarea name="liuyan" id="liuyan" style="width: 100%;" rows="2" placeholder="Please enter your address, and your special requirements here."></textarea>
+          </div>
+        </div>
+      </div>
+    </main>
+<% include ../template/footer.html %>
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/functions.js"></script>
+<script>
+	"use strict";
+  var LOGIN = false;
+  var dishes = [];
+  var order = [];
+$(function(){
+
+  console.log(document.cookie);
+  if(getCookie('username') != null && getCookie('password') != null) {
+
+    $.ajax('http://localhost:8081/login',{
+                 data:{
+                    "username":getCookie('username'),
+                    "password":getCookie('password')
+                },
+                 dataType:'json',
+                 type:'POST',
+                 async:'true',
+                 success:function(result){
+                     console.log(result)
+                     if(result.status!='200')
+                     {
+                         return;
+                     }
+                     if(result.data.success == true) {
+                      $("#username").text(getCookie('username'));
+                      LOGIN = true;
+                     } else {
+                      $("#username").text('not yet landed');
+                      LOGIN = false;
+                     }
+                    
+                 },
+                 error:function(){
+                     alert("error");
+                     }
+             });
+  }
+
+  $.ajax('http://localhost:8081/dishes',{
+               data:{
+                  "dishes":"dishes"
+              },
+               dataType:'json',
+               type:'POST',
+               async:'true',
+               success:function(result){
+                   console.log(result)
+                   if(result.status!='200')
+                   {
+                       return;
+                   }
+                   dishes = result.data;
+                  for(var item in dishes) {
+                    if(getCookie(dishes[item].name)!=null) {
+                      order.push({name:dishes[item].name,price:dishes[item].price,number:parseInt(getCookie(dishes[item].name))});
+                    }
+                  }
+                  loadHTML(order);
+                  addeventlisteners();
+                  
+               },
+               error:function(){
+                   alert("error");
+                   }
+           });
+
+});
+
+function loadHTML(order) {
+  console.log(order);
+  var contents = "";
+  for(var item in order) {
+    contents += '<tr>';
+    contents += '<td>'+order[item].name+'</td>';
+    contents += '<td>'+order[item].price+'</td>';
+    contents += '<td class="md-hidden-xs">';
+    contents += '<button class="but4 addleft" type="button">-</button>';
+    contents += '<span class="dishnum">'+order[item].number+'</span>';
+    contents += '<button class="but4 addright" type="button">+</button></td>';
+    contents += '<td><button class="btn removedish">removes</button></td>';
+    contents += '</tr>';
+  }
+  $("#dishes").html(contents);
+}
+
+function addeventlisteners(){
+  
+  $(".addleft").click(function(){
+    var num = $(this).parent().find('span').text();
+    var name = $(this).parent().parent().find('td:eq(0)').text();
+    num = parseInt(num);
+    num--;
+    if(num < 1) num = 1;
+    $(this).parent().find('span').text(num);
+    setCookie(name,num);
+    modifiorder(name, num);
+  });  
+
+  $(".addright").click(function(){
+    var num = $(this).parent().find('span').text();
+    var name = $(this).parent().parent().find('td:eq(0)').text();
+    num = parseInt(num);
+    num++;
+    $(this).parent().find('span').text(num);
+    setCookie(name,num);
+    modifiorder(name, num);
+  });
+
+  $(".removedish").click(function(){
+    $(this).parent().parent().remove();
+    var name = $(this).parent().parent().find('td:eq(0)').text();
+    delCookie(name);
+    modifiorder(name, 0);
+  });
+
+  $("#cancelbtn").click(function(){
+    window.location.href = '/';
+    for(var item in dishes) {
+      delCookie(dishes[item].name);
+    }
+  });
+
+  $("#submitbtn").click(function(){
+    if(LOGIN) {
+      var submitorder = [];
+      for(var item in order) {
+        if(order[item].number != 0) {
+          submitorder.push(order[item]);
+        }
+      }
+
+      if(isEmpty(submitorder)) {
+        alert("You have not selected any products");
+        return;
+      }
+
+      if($("#liuyan").val() == "") {
+        alert("Please write your address in the comments");
+        return;
+      }
+
+      for(var item in dishes) {
+        delCookie(dishes[item].name);
+      }
+
+    $.ajax('http://localhost:8081/createorder',{
+                 data:{
+                    username:$("#username").text(),
+                    order:JSON.stringify(submitorder),
+                    liuyan:$("#liuyan").val()
+                },
+                 dataType:'json',
+                 type:'POST',
+                 async:'true',
+                 success:function(result){
+                     console.log(result)
+                     if(result.status!='200')
+                     {
+                         return;
+                     }
+                      for(var item in dishes) {
+                        delCookie(dishes[item].name);
+                      }
+                      alert("Order created successfully");
+                      $("#dishes").html('');
+                 },
+                 error:function(){
+                     alert("error");
+                     }
+             });
+        } else {
+      alert("Please log in first");
+    }
+  });
+}
+
+function modifiorder(name, num) {
+  for(var item in order) {
+    if(order[item].name == name) {
+      order[item].number = num;
+      return;
+    }
+  }
+}
+
+</script>
+
+</body>
+</html>

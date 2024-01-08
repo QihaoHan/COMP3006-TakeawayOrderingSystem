@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Maidong">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=no">
+    
+    <title>Takeaway Ordering System</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/car.css">
+    <link rel="stylesheet" type="text/css" media="all" href="/css/style.css">
+  </head>
+    <style>
+      .mir-shadow{ box-shadow: 10px 10px 15px #8e8e8e; }
+      #gotoTop{ position: fixed; bottom: 10px; right: 10px; width: 50px; height: 50px; opacity: 0.5; }
+      #gotoTop:hover{ opacity: 1; }
+      body{
+        height: 100%;
+        width: 100%;
+      }
+      .windowcenter {
+        position:fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        text-align:center;
+        overflow: hidden;
+        justify-content: center;
+        -webkit-align-items: center;
+        align-items: center;
+        z-index: 999;
+      }
+    </style>
+  <body>
+    <center class="windowcenter">
+    <div id="loginmodal">
+        <h1>Admin Login</h1>
+        <form id="loginform" name="loginform" method="post" action="index.html">
+            <label for="username">Username:</label>
+            <input type="text" name="username" id="username" class="txtfield" tabindex="1">
+            <label for="password">Password:</label>
+            <input type="password" name="password" id="password" class="txtfield" tabindex="2">
+            <div class="center"><input type="button" name="loginbtn" id="loginbtn" class="flatbtn-blu hidemodal mr-3" value="Log In" tabindex="3"></div>
+        </form>
+    </div>
+    </center>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/functions.js"></script>
+    <script src="/js/dishes.js"></script>
+    <script>
+        "use strict";
+        var LOGIN = false;
+        $(function(){
+            console.log(document.cookie);
+            
+            $('#loginform').submit(function(e){return false;});
+            $('#loginbtn').click(function(){
+                console.log({
+                                "username":$("#username").val(),
+                                "password":$("#password").val()
+                            });
+                $.ajax('http://localhost:8081/adminlogin',{
+                             data:{
+                                "username":$("#username").val(),
+                                "password":$("#password").val()
+                            },
+                             dataType:'json',
+                             type:'POST',
+                             async:'true',
+                             success:function(result){
+                                 console.log(result)
+                                 if(result.status!='200')
+                                 {
+                                     return;
+                                 }
+                                 if(result.data.success == true) {
+                                  window.location.href="dishManage";
+                                  LOGIN = true;
+                                 } else {
+                                  alert("Incorrect username or password");
+                                 }
+                                
+                             },
+                             error:function(){
+                                 alert("error");
+                                 }
+                         });
+                $("#username").val(''); 
+                $("#password").val(''); 
+              });
+
+        });
+
+    </script>
+  </body>
+</html>

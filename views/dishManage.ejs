@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Maidong">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=no">
+    <title>Takeaway Ordering System</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/order.css">
+    <link rel="stylesheet" type="text/css" media="all" href="/css/style.css">
+    <style>
+      @media (max-width:767px) {.md-hidden-xs {display:none!important}}
+      .windowcenter {
+        position:fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        text-align:center;
+        overflow: hidden;
+        justify-content: center;
+        -webkit-align-items: center;
+        align-items: center;
+        z-index: 999;
+      }
+    </style>
+  </head>
+  <body>
+<% include ../template/header.html %>
+
+    <main>
+      <section class="jumbotron text-center mb-0">
+        <div class="container">
+          <h1 class="jumbotron-heading">management side</h1></div>
+      </section>
+      <div class="py-5 bg-light">
+        <div class="container" id="main_container">
+          <div class="row">
+            <div class="col-md-2">
+              <nav class="nav nav-pills nav-fill flex-column">
+                <a class="nav-item nav-link active" href="javascript:(0);">Dish management</a>
+                <a class="nav-item nav-link" href="/orderManage">Order Management</a>
+
+              </nav>
+            </div>
+            <div class="col-md-9 offset-1">
+
+          <div class="row">
+            <div class="col-md-10">
+              <nav class="navbar navbar-expand navbar-light bg-light">
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                  <div class="navbar-nav"></div>
+                  <div class="btn-group" role="group" id="pathNav" aria-label="path"></div>
+                </div>
+              </nav>
+            </div>
+          </div>
+          <ul class="nav" id="mdlistNav"></ul>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <td>dish name </td>
+                <td>price</td>
+                  <td>Add&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;modify&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;remove</td>
+              </tr>
+            </thead>
+            <tbody id="dishes">
+              <tr>
+
+              </tr>
+            </tbody>
+          </table>
+          <div class="row">
+
+          </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </main>
+    <center class="windowcenter">
+    <div id="loginmodal">
+        <h1>菜品修改</h1>
+        <form id="loginform" name="loginform" method="post" action="index.html">
+            <input type="text" id="originname" style="display: none;">
+            <input type="text" id="originprice" style="display: none;">
+            <input type="text" id="type" style="display: none;">
+            <label for="dishname">dish name</label>
+            <input type="text" name="dishname" id="dishname" class="txtfield" tabindex="1">
+            <label for="dishprice">Price:</label>
+            <input type="text" name="dishprice" id="dishprice" class="txtfield" tabindex="2">
+            <div class="center"><input type="button" name="submitbtn" id="submitbtn" class="flatbtn-blu hidemodal mr-3" value=" confirm" tabindex="3"><input type="button" name="cancelbtn" id="cancelbtn" class="flatbtn-blu hidemodal mr-3" value="Cancel" tabindex="3"></div>
+        </form>
+    </div>
+    </center>
+<% include ../template/footer.html %>
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/functions.js"></script>
+<script>
+  "use strict";
+  var LOGIN = false;
+  var dishes = [];
+  var order = [];
+$(function(){
+  $.ajax('http://localhost:8081/dishes',{
+               data:{
+                  "dishes":"dishes"
+              },
+               dataType:'json',
+               type:'POST',
+               async:'true',
+               success:function(result){
+                   console.log(result)
+                   if(result.status!='200')
+                   {
+                       return;
+                   }
+                   dishes = result.data;
+                  loadHTML(dishes);
+                  addeventlisteners();
+                  
+               },
+               error:function(){
+                   alert("error");
+                   }
+           });
+});
+
+function reloadHTML() {
+  $.ajax('http://localhost:8081/dishes',{
+             data:{
+                "dishes":"dishes"
+            },
+             dataType:'json',
+             type:'POST',
+             async:'true',
+             success:function(result){
+                 console.log(result)
+                 if(result.status!='200')
+                 {
+                     return;
+                 }
+                 dishes = result.data;
+                loadHTML(dishes);
+                addeventlisteners();
+                
+             },
+             error:function(){
+                 alert("error");
+                 }
+         });
+}
+
+function loadHTML(data) {
+  console.log(data)
+  var contents = "";
+  for(var item in data) {
+    contents += '<tr>';
+    contents += '<td>'+data[item].name+'</td>';
+    contents += '<td>'+data[item].price+'</td>';
+    contents += '<td><button class="btn addbtn">Add</button><button class="btn modifibtn offset-1">modify</button><button class="btn offset-1 removebtn">remove</button></td>';
+    contents += '</tr>';
+  }
+  $("#dishes").html(contents);
+}
+
+function addeventlisteners(){
+  console.log('Adding event listeners'); 
+  $(".addbtn").unbind();
+
+  $(".modifibtn").unbind();
+
+  $(".removebtn").unbind();
+
+  $("#submitbtn").unbind();
+
+  $("#cancelbtn").unbind();
+
+  $(".addbtn").click(function(){
+    $(".windowcenter").css("display","flex");
+    $("#type").val("add");
+    $("#loginmodal h1").text("Dish Additions");
+    $("#submitbtn").val("Confirm");
+  });
+
+  $(".modifibtn").click(function(){
+    $(".windowcenter").css("display","flex");
+    var name = $(this).parent().parent().find("td:eq(0)").text();
+    var price = $(this).parent().parent().find("td:eq(1)").text();
+    $("#originname").val(name);
+    $("#originprice").val(price);
+    $("#dishname").val(name);
+    $("#dishprice").val(price);
+    $("#type").val("modify");
+    $("#loginmodal h1").text("Modification of dishes");
+    $("#submitbtn").val(" confirm");
+  });
+
+  $(".removebtn").click(function(){
+    var obj = this;
+    $.ajax('http://localhost:8081/removedish',{
+                 data:{
+                  "name":$(obj).parent().parent().find("td:eq(0)").text(),
+                  "price":$(obj).parent().parent().find("td:eq(1)").text()
+                },
+                 dataType:'json',
+                 type:'POST',
+                 async:'true',
+                 success:function(result){
+                     console.log(result)
+                     if(result.status!='200')
+                     {
+                         return;
+                     }
+                     if(result.data.success == true) {
+                      $(obj).parent().parent().remove();
+                     } else {
+                      alert("Failed to remove dish");
+                     }
+                 },
+                 error:function(){
+                     alert("error");
+                     }
+             });
+  });
+
+  $("#submitbtn").click(function(){
+    $(".windowcenter").css("display","none");
+
+    if($("#type").val() == "modify") {
+      $.ajax('http://localhost:8081/modifidish',{
+        data:{
+          "name": $("#originname").val(),
+          "price": $("#originprice").val(),
+          "newname": $("#dishname").val(),
+          "newprice": parseFloat($("#dishprice").val()) // 确保发送的是数字
+        },
+        dataType:'json',
+        type:'POST',
+        async:true,
+        success:function(result){
+          console.log(result)
+          if(result.status == '200' && result.data.success) {
+            
+            const newName = $("#dishname").val();
+            const newPrice = $("#dishprice").val();
+            $("#dishes").find("tr").each(function(){
+              if($(this).children("td:first").text() === newName) {
+                $(this).children("td:nth-child(2)").text(newPrice);
+              }
+            });
+          } else {
+            alert("Failed to modify dish information");
+          }
+        },
+        error:function(){
+          alert("error");
+        }
+      });
+    } else if($("#type").val() == "add") {
+      $.ajax('http://localhost:8081/adddish',{
+                   data:{
+                    "name":$("#dishname").val(),
+                    "price":$("#dishprice").val()
+                  },
+                   dataType:'json',
+                   type:'POST',
+                   async:'true',
+                   success:function(result){
+                       console.log(result)
+                       if(result.status!='200')
+                       {
+                           return;
+                       }
+                       if(result.data.success == true) {
+                        reloadHTML();
+                        $("#dishname").val("");
+                        $("#dishprice").val("");
+                       } else {
+                        alert("Failed to add dish, please check if the dish name is duplicated");
+                       }
+                       return;
+                   },
+                   error:function(){
+                       alert("error");
+                       }
+               });
+    }
+  });
+
+  $("#cancelbtn").click(function(){
+    $(".windowcenter").css("display","none");
+  });
+
+}
+
+function modifiorder(name, num) {
+  for(var item in order) {
+    if(order[item].name == name) {
+      order[item].number = num;
+      return;
+    }
+  }
+}
+</script>
+
+</body>
+</html>

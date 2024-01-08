@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Maidong">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=no">
+    <title>Takeaway Ordering System</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/order.css">
+    <link rel="stylesheet" type="text/css" media="all" href="/css/style.css">
+    <style>
+      @media (max-width:767px) {.md-hidden-xs {display:none!important}}
+    </style>
+  </head>
+  <body>
+<% include ../template/header.html %>
+
+    <main>
+      <section class="jumbotron text-center mb-0">
+        <div class="container">
+          <h1 class="jumbotron-heading">Order Details</h1></div>
+      </section>
+      <div class="py-5 bg-light">
+        <div class="container" id="main_container">
+          <div class="row">
+            <div class="col-md-2">
+              <nav class="nav nav-pills nav-fill flex-column">
+                <a class="nav-item nav-link" href="/dishManage">Dish management</a>
+                <a class="nav-item nav-link active" href="/orderManage">Order Management</a>
+              </nav>
+            </div>
+            <div class="col-md-9 offset-1">
+          <div class="row">
+            <div class="col-md-2">Order number:<span id="order_id">This order number is invalid</span></div>
+            <div class="col-md-2">Orderer Customer：<span id="username" name="userid">not have</span></div>
+            <div class="col-md-2">Order Statuses:<span id="order_state">无</span></div>
+            <div class="col-md-2"><button class="btn" type="button" id="deliverbtn">Start delivery</button></div>
+            <div class="col-md-2"><button class="btn" type="button" id="submitbtn">Order Completion</button></div>
+            <div class="col-md-2"><button class="btn" type="button" id="cancelbtn">Order Cancellation</button></div>
+          </div>
+          <div class="row">
+            <div class="col-md-10">
+              <nav class="navbar navbar-expand navbar-light bg-light">
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                  <div class="navbar-nav"></div>
+                  <div class="btn-group" role="group" id="pathNav" aria-label="path"></div>
+                </div>
+              </nav>
+            </div>
+          </div>
+          <ul class="nav" id="mdlistNav"></ul>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <td>Dish name</td>
+                <td>Price</td>
+                <td class="md-hidden-xs">Number</td>
+                <td>total price</td>
+              </tr>
+            </thead>
+            <tbody id="dishes">
+             <tr>
+                <td>Please select order via All Orders to view details</td>
+                <td>0.00</td>
+                <td class="md-hidden-xs">
+                  <span>1</span>
+                </td>
+                <td>0</td>
+              </tr>
+              <tr>
+            </tbody>
+          </table>
+
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </main>
+<% include ../template/footer.html %>
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/functions.js"></script>
+<script>
+	"use strict";
+  var LOGIN = false;
+  var dishes = [];
+  var order = [];
+$(function(){
+  // alert(typeof GetQueryString("orderID"));
+  $.ajax('http://localhost:8081/singleOrder',{
+             data:{
+                "orderID":GetQueryString("orderID")
+            },
+             dataType:'json',
+             type:'POST',
+             async:'true',
+             success:function(result){
+                 console.log(result)
+                 if(result.status!='200')
+                 {
+                     return;
+                 }
+                 
+                loadHTML(result.data);
+                addeventlisteners();
+             },
+             error:function(){
+                 alert("error");
+                 }
+         });
+
+});
+
+function loadHTML(data) {
+  $("#order_id").text(data.orderID);
+  $("#username").text(data.username);
+  $("#order_state").text(getOrderstateFromNumber(data.orderStateNum));
+  // $("#liuyan").text(data.liuyan);
+  var contents = "";
+  let order = JSON.parse(data.order);
+  for(var item in order) {
+    console.log(order);
+    contents += '<tr>';
+    contents += '<td>'+order[item].name+'</td>';
+    contents += '<td>'+order[item].price+'</td>';
+    contents += '<td class="md-hidden-xs">';
+    contents += '<span class="dishnum">'+order[item].number+'</span></td>';
+    contents += '<td>' + order[item].price*order[item].number + '</td>';
+    contents += '</tr>';
+  }
+  $("#dishes").html(contents);
+}
+
+function addeventlisteners(){
+  
+  $(".addleft").click(function(){
+    var num = $(this).parent().find('span').text();
+    var name = $(this).parent().parent().find('td:eq(0)').text();
+    num = parseInt(num);
+    num--;
+    if(num < 1) num = 1;
+    $(this).parent().find('span').text(num);
+    modifiorder(name, num);
+  });  
+
+  $(".addright").click(function(){
+    var num = $(this).parent().find('span').text();
+    var name = $(this).parent().parent().find('td:eq(0)').text();
+    num = parseInt(num);
+    num++;
+    $(this).parent().find('span').text(num);
+    modifiorder(name, num);
+  });
+
+  $(".removedish").click(function(){
+    $(this).parent().parent().remove();
+    var name = $(this).parent().parent().find('td:eq(0)').text();
+    delCookie(name);
+    modifiorder(name, 0);
+  });
+
+  $("#cancelbtn").click(function(){
+    $.ajax('http://localhost:8081/cancelorder',{
+                 data:{
+                    orderID:$("#order_id").text()
+                },
+                 dataType:'json',
+                 type:'POST',
+                 async:'true',
+                 success:function(result){
+                     console.log(result)
+                     if(result.status!='200')
+                     {
+                         return;
+                     }
+                     $("#order_state").text(getOrderstateFromNumber(4));
+                    
+                 },
+                 error:function(){
+                     alert("error");
+                     }
+             });
+  });
+
+  $("#deliverbtn").click(function(){
+    $.ajax('http://localhost:8081/deliverorder',{
+                 data:{
+                    orderID:$("#order_id").text()
+                },
+                 dataType:'json',
+                 type:'POST',
+                 async:'true',
+                 success:function(result){
+                     console.log(result)
+                     if(result.status!='200')
+                     {
+                         return;
+                     }
+                     $("#order_state").text(getOrderstateFromNumber(2));
+                 },
+                 error:function(){
+                     alert("error");
+                     }
+             });
+  });
+
+  $("#submitbtn").click(function(){
+    $.ajax('http://localhost:8081/completeorder',{
+                 data:{
+                    orderID:$("#order_id").text()
+                },
+                 dataType:'json',
+                 type:'POST',
+                 async:'true',
+                 success:function(result){
+                     console.log(result)
+                     if(result.status!='200')
+                     {
+                         return;
+                     }
+                     $("#order_state").text(getOrderstateFromNumber(3));
+                    
+                 },
+                 error:function(){
+                     alert("error");
+                     }
+             });
+  });
+}
+
+function modifiorder(name, num) {
+  for(var item in order) {
+    if(order[item].name == name) {
+      order[item].number = num;
+      return;
+    }
+  }
+}
+</script>
+
+</body>
+</html>

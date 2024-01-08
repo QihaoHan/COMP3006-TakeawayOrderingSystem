@@ -1,0 +1,70 @@
+﻿body {
+    margin: 0px;
+    padding: 0px;
+    font-family: "微软雅黑";
+}
+
+.pro {
+    width: 220px;
+    height: 352px;
+    border: solid 1px #ccc;
+    float: left;
+    margin: 5px;
+}
+
+#pros {
+    width: 710px;
+    height: 730px;
+    position:absolute;
+    left:50px;
+    top:50px;
+}
+
+.pro-price {
+    width: 100px;
+    height: 30px;
+    margin: 0px auto;
+    text-align: center;
+    line-height: 30px;
+    color: red;
+    font-size: 22px;
+}
+
+.pro-title {
+    width: 200px;
+    height: 40px;
+    margin: 0px auto;
+    font-size: 14px;
+    text-align: center;
+    line-height: 20px;
+    margin: 10px 0px;
+}
+
+.btn-car a {
+    width: 100px;
+    height: 30px;
+    background-color: red;
+    display: block;
+    margin: 0px auto;
+    text-align: center;
+    line-height: 30px;
+    color: #fff;
+    text-decoration: none;
+}
+#car {
+    width:60px;
+    height:60px;
+    background-image:url("../img/car_empty.png");
+    position:fixed;
+    right:0px;
+    top:200px;
+}
+#dnum {
+ width:18px;
+ height:18px;
+ background-color:red;
+ color:#fff;
+ text-align:center;
+ line-height:18px;
+ border-radius:100%;
+}

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Maidong">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=no">
+    <title>Takeaway Ordering System</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/order.css">
+    <link rel="stylesheet" type="text/css" media="all" href="/css/style.css">
+    <style>
+      @media (max-width:767px) {.md-hidden-xs {display:none!important}}
+      .windowcenter {
+        position:fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        text-align:center;
+        overflow: hidden;
+        justify-content: center;
+        -webkit-align-items: center;
+        align-items: center;
+        z-index: 999;
+      }
+    </style>
+  </head>
+  <body>
+<% include ../template/header.html %>
+
+    <main>
+      <section class="jumbotron text-center mb-0">
+        <div class="container">
+          <h1 class="jumbotron-heading">Order Management</h1></div>
+      </section>
+      <div class="py-5 bg-light">
+        <div class="container" id="main_container">
+          <div class="row">
+            <div class="col-md-2">
+              <nav class="nav nav-pills nav-fill flex-column">
+                <a class="nav-item nav-link" href="/dishManage">Dish management</a>
+                <a class="nav-item nav-link active" href="javascript:(0);">Order Management</a>
+                <!-- <a class="nav-item nav-link" href="orderDetail">订单详情</a> -->
+              </nav>
+            </div>
+            <div class="col-md-9 offset-1">
+
+          <div class="row">
+            <div class="col-md-10">
+              <nav class="navbar navbar-expand navbar-light bg-light">
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                  <div class="navbar-nav"></div>
+                  <div class="btn-group" role="group" id="pathNav" aria-label="path"></div>
+                </div>
+              </nav>
+            </div>
+          </div>
+          <ul class="nav" id="mdlistNav"></ul>
+          <table class="table table-hover">
+            <thead>
+
+            <tr>
+                <td>Order Number</td>
+                <td>Purchaser</td>
+                <td>Order Status</td>
+                <td>User Comments (Address and Remarks)</td>
+            </tr>
+
+            </thead>
+            <tbody id="dishes">
+              <tr>
+				<td>1</td>
+				<td>Tom</td>
+				<td>User has placed an order</td>
+				<td>LD</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="row">
+
+          </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </main>
+    <center class="windowcenter">
+    <div id="loginmodal">
+        <h1>Modification of dishes</h1>
+        <form id="loginform" name="loginform" method="post" action="index.html">
+            <input type="text" id="originname" style="display: none;">
+            <input type="text" id="originprice" style="display: none;">
+            <label for="dishname">dish name</label>
+            <input type="text" name="dishname" id="dishname" class="txtfield" tabindex="1">
+            <label for="dishprice">Price</label>
+            <input type="text" name="dishprice" id="dishprice" class="txtfield" tabindex="2">
+            <div class="center"><input type="button" name="submitbtn" id="submitbtn" class="flatbtn-blu hidemodal mr-3" value="Confirmation of changes" tabindex="3"></div>
+        </form>
+    </div>
+    </center>
+<% include ../template/footer.html %>
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/functions.js"></script>
+<script>
+  "use strict";
+  var LOGIN = false;
+  var dishes = [];
+  var order = [];
+$(function(){
+  $.ajax('http://localhost:8081/orders',{
+               data:{
+                  "orders":"orders"
+              },
+               dataType:'json',
+               type:'POST',
+               async:'true',
+               success:function(result){
+                   console.log(result)
+                   if(result.status!='200')
+                   {
+                       return;
+                   }
+                   var orders = result.data;
+                  loadHTML(orders);
+                  addeventlisteners();
+                  
+               },
+               error:function(){
+                   alert("error");
+                   }
+           });
+});
+
+function reloadHTML() {
+  $.ajax('http://localhost:8081/orders',{
+               data:{
+                  "orders":"orders"
+              },
+               dataType:'json',
+               type:'POST',
+               async:'true',
+               success:function(result){
+                   console.log(result)
+                   if(result.status!='200')
+                   {
+                       return;
+                   }
+                   var orders = result.data;
+                  loadHTML(orders);
+                  addeventlisteners();
+                  
+               },
+               error:function(){
+                   alert("error");
+                   }
+           });
+}
+// {orderID:'1',username:'zengwei',orderStateNum:1,order:[{name:'dish1',price:2,number:2}],liuyan:'北京'},
+function loadHTML(data) {
+  var contents = "";
+  for(var item in data) {
+  	contents += '<tr>';
+	contents += '<td>'+data[item].orderID+'</td>';
+	contents += '<td>'+data[item].username+'</td>';
+	contents += '<td>'+getOrderstateFromNumber(data[item].orderStateNum)+'</td>';
+	contents += '<td>'+data[item].liuyan+'</td>';
+  	contents += '</tr>';
+  }
+  console.log(contents);
+  $("#dishes").html(contents);
+}
+
+function addeventlisteners(){
+  
+  $(".modifibtn").click(function(){
+    $(".windowcenter").css("display","flex");
+    var name = $(this).parent().parent().find("td:eq(0)").text();
+    var price = $(this).parent().parent().find("td:eq(1)").text();
+    $("#originname").val(name);
+    $("#originprice").val(price);
+    $("#dishname").val(name);
+    $("#dishprice").val(price);
+
+  });
+
+  $("#submitbtn").click(function(){
+    $(".windowcenter").css("display","none");
+    $.ajax('http://localhost:8081/modifidish',{
+                 data:{
+                  "name":$("#originname").val(),
+                  "price":$("#originprice").val(),
+                  "newname":$("#dishname").val(),
+                  "newprice":$("#dishprice").val()
+                },
+                 dataType:'json',
+                 type:'POST',
+                 async:'true',
+                 success:function(result){
+                     console.log(result)
+                     if(result.status!='200')
+                     {
+                         return;
+                     }
+                     if(result.data.success == true) {
+                      reloadHTML();
+                     } else {
+                      alert("Failed to modify dish information");
+                     }
+                    
+                 },
+                 error:function(){
+                     alert("error");
+                     }
+             });
+  });
+
+  $(".removebtn").click(function(){
+    var obj = this;
+    $.ajax('http://localhost:8081/removedish',{
+                 data:{
+                  "name":$(obj).parent().parent().find("td:eq(0)").text(),
+                  "price":$(obj).parent().parent().find("td:eq(1)").text()
+                },
+                 dataType:'json',
+                 type:'POST',
+                 async:'true',
+                 success:function(result){
+                     console.log(result)
+                     if(result.status!='200')
+                     {
+                         return;
+                     }
+                     if(result.data.success == true) {
+                      $(obj).parent().parent().remove();
+                     } else {
+                      alert("Failed to remove dish");
+                     }
+                 },
+                 error:function(){
+                     alert("error");
+                     }
+             });
+  });
+
+  $("#dishes tr").click(function(){
+  	let orderID = $(this).find('td:eq(0)').text();
+  	window.location.href = '/orderDetail?orderID='+orderID;
+  });
+}
+
+function modifiorder(name, num) {
+  for(var item in order) {
+    if(order[item].name == name) {
+      order[item].number = num;
+      return;
+    }
+  }
+}
+</script>
+
+</body>
+</html>

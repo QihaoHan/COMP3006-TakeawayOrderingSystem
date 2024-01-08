@@ -1,0 +1,23 @@
+{
+	"user":[
+		{"username":"zhangsan","password":"zs201804"},
+		{"username":"maidong","password":"123456"}
+		],
+	"manager":[
+		{"username":"admin","password":"admin"}
+		],
+	"dishes":[
+		{"name":"hamburgerset","price":5},
+		{"name":"FriedChickenSetMeal","price":10},
+		{"name":"PizzaSet","price":12},
+		{"name":"Comprehensivepackages","price":15}
+		],
+	"order":[
+		{"orderID":"1","username":"maidong","orderStateNum":1,"order":"[{name:'PizzaSet',price:12,number:1}]","liuyan":"Please send to University of Plymouth Neighbourhood"}]
+
+}	
+
+
+		
+		
+		

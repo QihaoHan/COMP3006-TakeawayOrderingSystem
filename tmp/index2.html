@@ -1,0 +1,26 @@
+<html>
+<body>
+	<p>未登陆</p>
+<form action="http://127.0.0.1:8081/process_get" method="GET">
+First Name: <input type="text" name="first_name1">  <br>
+ 
+Last Name: <input type="text" name="last_name1">
+<input type="submit" value="Submit">
+</form>
+<form action="http://127.0.0.1:8081/login" method="POST">
+		<input type="text" name="user_type" value="1">
+First Name: <input type="text" name="username">  <br>
+ 
+Last Name: <input type="password" name="password">
+<input type="submit" value="Submit">
+</form>
+<!-- <h3>文件上传：</h3>
+选择一个文件上传: <br />
+<form action="/file_upload" method="post" enctype="multipart/form-data">
+<input type="file" name="image" size="50" />
+<br />
+<input type="submit" value="上传文件" />
+</form> -->
+
+</body>
+</html>
